@@ -109,12 +109,18 @@ public class MarsEnv extends Environment {
                 e.printStackTrace();
             }
 
-            // initial location of garbage
-            add(GARB, 3, 0);
-            add(GARB, GSize-1, 0);
-            add(GARB, 1, 2);
-            add(GARB, 0, GSize-2);
-            add(GARB, GSize-1, GSize-1);
+            // initial locations of garbage
+			for (int i = 0; i < random.nextInt(GSize * GSize / 2); i++) {
+				int x = random.nextInt(GSize);
+				int y = random.nextInt(GSize);
+				
+				while (hasObject(GARB, x, y)) {
+					x = random.nextInt(GSize);
+				    y = random.nextInt(GSize);
+				}
+				
+				add(GARB, x, y);
+			}
         }
 
         void nextSlot() throws Exception {
@@ -211,7 +217,7 @@ public class MarsEnv extends Environment {
                 g.setColor(Color.white);
             }
             super.drawString(g, x, y, defaultFont, label);
-            repaint();
+            //repaint();
         }
 
         public void drawGarb(Graphics g, int x, int y) {
