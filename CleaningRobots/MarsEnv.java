@@ -1,4 +1,4 @@
-import jason.asSyntax.*;
+import jason.asSyntax.*; 
 import jason.environment.Environment;
 import jason.environment.grid.GridWorldModel;
 import jason.environment.grid.GridWorldView;
@@ -90,8 +90,8 @@ public class MarsEnv extends Environment {
 
     class MarsModel extends GridWorldModel {
 
-        public static final int MErr = 2; // max error in pick garb
-        int nerr; // number of tries of pick garb
+        public static final int MErr = 2; // max error in pick/burn garb
+        int nerr = 0, burnerr = 0; // number of tries of pick/burn garb
         boolean r1HasGarb = false; // whether r1 is carrying garbage or not
 
         Random random = new Random(System.currentTimeMillis());
@@ -101,16 +101,16 @@ public class MarsEnv extends Environment {
 
             // initial location of agents
             try {
-                setAgPos(0, 0, 0);
+                setAgPos(0, random.nextInt(GSize), random.nextInt(GSize));
 
-                Location r2Loc = new Location(GSize/2, GSize/2);
+                Location r2Loc = new Location(random.nextInt(GSize), random.nextInt(GSize));
                 setAgPos(1, r2Loc);
             } catch (Exception e) {
                 e.printStackTrace();
             }
 
             // initial locations of garbage
-			for (int i = 0; i < random.nextInt(GSize * GSize / 2); i++) {
+			for (int i = 0; i < Math.max(1, random.nextInt(GSize * GSize / 2)); i++) {
 				int x = random.nextInt(GSize);
 				int y = random.nextInt(GSize);
 				
@@ -125,15 +125,16 @@ public class MarsEnv extends Environment {
 
         void nextSlot() throws Exception {
             Location r1 = getAgPos(0);
-            r1.x++;
+            r1.y++;
+            if (r1.y == getHeight()) {
+                r1.x ++;
+                r1.y = 0;
+            }
             if (r1.x == getWidth()) {
                 r1.x = 0;
-                r1.y++;
+                r1.y = 0;
             }
             // finished searching the whole grid
-            if (r1.y == getHeight()) {
-                return;
-            }
             setAgPos(0, r1);
             setAgPos(1, getAgPos(1)); // just to draw it in the view
         }
@@ -154,7 +155,7 @@ public class MarsEnv extends Environment {
 
         void pickGarb() {
             // r1 location has garbage
-            if (model.hasObject(GARB, getAgPos(0))) {
+            if (model.hasObject(GARB, getAgPos(0)) && !getAgPos(0).equals(getAgPos(1))) {
                 // sometimes the "picking" action doesn't work
                 // but never more than MErr times
                 if (random.nextBoolean() || nerr == MErr) {
@@ -175,7 +176,12 @@ public class MarsEnv extends Environment {
         void burnGarb() {
             // r2 location has garbage
             if (model.hasObject(GARB, getAgPos(1))) {
-                remove(GARB, getAgPos(1));
+                if (random.nextBoolean() || burnerr == MErr) {
+                    remove(GARB, getAgPos(1));
+                    burnerr = 0;
+                } else {
+                    burnerr ++;
+                }
             }
         }
     }
