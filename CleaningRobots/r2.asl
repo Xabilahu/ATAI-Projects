@@ -9,4 +9,3 @@
 					   !ensure_burn(r2).
 +!ensure_burn(_).
 
-				  
