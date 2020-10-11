@@ -14,6 +14,7 @@ public class MarsEnv extends Environment {
 
     public static final int GSize = 7; // grid size
     public static final int GARB  = 16; // garbage code in grid model
+	public static final int FUEL  = 32; // fuel-station code in grid model
 
     public static final Term    ns = Literal.parseLiteral("next(slot)");
     public static final Term    pg = Literal.parseLiteral("pick(garb)");
@@ -27,7 +28,6 @@ public class MarsEnv extends Environment {
 
     private MarsModel model;
     private MarsView  view;
-	private Literal target = null;
 
     @Override
     public void init(String[] args) {
@@ -115,10 +115,18 @@ public class MarsEnv extends Environment {
             // initial location of agents
             try {
                 setAgPos(0, random.nextInt(GSize), random.nextInt(GSize));
-
                 Location r2Loc = new Location(random.nextInt(GSize), random.nextInt(GSize));
                 setAgPos(1, r2Loc);
 				setAgPos(2, random.nextInt(GSize), random.nextInt(GSize));
+				
+				Location fLoc = new Location(random.nextInt(GSize), random.nextInt(GSize));
+			
+				while (fLoc.equals(r2Loc)) {
+					fLoc = new Location(random.nextInt(GSize), random.nextInt(GSize));
+				}
+				
+				add(FUEL, fLoc);
+				
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -135,6 +143,7 @@ public class MarsEnv extends Environment {
 				
 				add(GARB, x, y);
 			}
+			
         }
 
         void nextSlot() throws Exception {
@@ -217,7 +226,7 @@ public class MarsEnv extends Environment {
 		}
 		void genGarb(){
 			Location loc = getAgPos(2);
-			if (!model.hasObject(GARB, loc) && random.nextFloat() < 0.1) 
+			if (!model.hasObject(GARB, loc) && random.nextFloat() < 0.2) 
 				add(GARB, loc);
 		}
     }
@@ -238,6 +247,8 @@ public class MarsEnv extends Environment {
             case MarsEnv.GARB:
                 drawGarb(g, x, y);
                 break;
+			case MarsEnv.FUEL:
+				drawFuel(g, x, y);
             }
         }
 
@@ -266,6 +277,15 @@ public class MarsEnv extends Environment {
             super.drawObstacle(g, x, y);
             g.setColor(Color.white);
             drawString(g, x, y, defaultFont, "G");
+        }
+		
+		public void drawFuel(Graphics g, int x, int y) {
+			g.setColor(Color.magenta);
+			g.fillRect(x * cellSizeW + 1, y * cellSizeH+1, cellSizeW-1, cellSizeH-1);
+			g.setColor(Color.black);
+			g.drawRect(x * cellSizeW + 2, y * cellSizeH+2, cellSizeW-4, cellSizeH-4);
+            g.setColor(Color.black);
+            drawString(g, x, y, defaultFont, "F");
         }
 
     }

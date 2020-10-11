@@ -8,4 +8,5 @@ MAS mars {
     environment: MarsEnv
 
     agents: r1; r2; r3;
+
 }
