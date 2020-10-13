@@ -1,14 +1,15 @@
 // mars robot 3
 
-!wander(S).
+!wander(_).
 
-+!make_garb(S): not garbage(r3) 
++!make_garb(_): not garbage(r3) 
 			    <- ?pos(r3, X, Y);
 				   gen_garb(X, Y);
-				   !wander(S).
-+!make_garb(S) <- !wander(S).
+				   .drop_all_intentions;
+				   !wander(_).
++!make_garb(_) <- !wander(_).
 		   
-+!wander(S) <- move_around(S);  
-			   !make_garb(S);
-			   !wander(S).
++!wander(_) <- move_around(_);  
+			   !make_garb(_);
+			   !wander(_).
   
