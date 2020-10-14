@@ -1,15 +1,10 @@
 // mars robot 3
 
-!wander(_).
++garbage(r3) : true 
+			   <- burn(2);
+			   	  !ensure_burn(r3).
 
-+!make_garb(_): not garbage(r3) 
-			    <- ?pos(r3, X, Y);
-				   gen_garb(X, Y);
-				   .drop_all_intentions;
-				   !wander(_).
-+!make_garb(_) <- !wander(_).
-		   
-+!wander(_) <- move_around(_);  
-			   !make_garb(_);
-			   !wander(_).
-  
++!ensure_burn(r3) : garbage(r3) 
+				    <- burn(2); 
+					   !ensure_burn(r3).
++!ensure_burn(_).

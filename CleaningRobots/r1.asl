@@ -20,14 +20,14 @@ at(P) :- pos(P,X,Y) & pos(r1,X,Y).
       !carry_to(T,r2);
 	  !check(slots).
    
-+garbage(T,r1) : T == 32 & not .desire(carry_to(T,r4)) //Plastic
++garbage(T,r1) : T == 32 & not .desire(carry_to(T,r3)) //Plastic
    <- .drop_all_intentions;
-      !carry_to(T,r4);
+      !carry_to(T,r3);
 	  !check(slots).
    
-+garbage(T,r1) : T == 64 & not .desire(carry_to(T,r5)) //Paper
++garbage(T,r1) : T == 64 & not .desire(carry_to(T,r4)) //Paper
    <- .drop_all_intentions;
-      !carry_to(T,r5);
+      !carry_to(T,r4);
 	  !check(slots).
 
 +!carry_to(T,R)
