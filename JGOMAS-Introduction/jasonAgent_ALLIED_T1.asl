@@ -26,19 +26,6 @@ type("CLASS_SOLDIER").
 *
 *******************************/
 
-+!show_positions_and_distances: alliedBase(aX, aY, aZ)
-    <- ?my_position(X, Y, Z);
-       ?objective(FlagX, FlagY, FlagZ);
-       !distance(pos(FlagX, FlagY, FlagZ));
-       ?distance(flagDist);
-       -distance(flagDist);
-       ?alliedBase(BaseX, BaseY, BaseZ);
-       !distance(pos(BaseX, BaseY, BaseZ));
-       ?distance(baseDist);
-       -distance(baseDist);
-       .println("Position: (", X, ", ", Y, ",", Z, ")\tDistance to Flag: ", flagDist, "\tDistance to Base: ", baseDist);
-       -+alliedBase(aX, aY, aZ).
-
 /////////////////////////////////
 //  GET AGENT TO AIM 
 /////////////////////////////////  
@@ -156,8 +143,24 @@ if (Length > 0) {
 * <em> It's very useful to overload this plan. </em>
 * 
 */
++!perform_look_action 
+    <- ?my_position(X, Y, Z);
+       ?flag(FlagX, FlagY, FlagZ);
 
-+!perform_look_action.
+       // TODO: Check if agent is porting the flag in order to update its position
+
+       !distance(pos(FlagX, FlagY, FlagZ));
+       ?distance(FlagDist);
+       -distance(_);
+       ?alliedBase(BaseX, BaseY, BaseZ);
+       !distance(pos(BaseX, BaseY, BaseZ));
+       ?distance(BaseDist);
+       -distance(_);
+       .println("Self: (", X, ", ", Y, ", ", Z, ")");
+       .println("Distance to Flag: ", FlagDist);
+       .println("Distance to Base: ", BaseDist);
+       .println("-----------------------------------------------------------")
+       . 
 
 /**
 * Action to do if this agent cannot shoot.
@@ -327,9 +330,12 @@ if (Length > 0) {
 /////////////////////////////////
 
 +!init
-   <- ?my_position(X,Y,Z);
-      +alliedBase(X,Y,Z);
-      !!show_positions_and_distances.
+   <- ?debug(Mode); 
+      if (Mode<=1) { .println("YOUR CODE FOR init GOES HERE.")};
+      ?my_position(X, Y, Z);
+      +alliedBase(X, Y, Z);
+      ?objective(FlagX, FlagY, FlagZ);
+      +flag(FlagX, FlagY, FlagZ).  
 
 
 
