@@ -146,10 +146,7 @@ patrollingRadius(64).
  * <em> It's very useful to overload this plan. </em>
  *
  */
-+!perform_look_action 
-    <-  
-         !tell_follower;
-        .
++!perform_look_action .
 /// <- ?debug(Mode); if (Mode<=1) { .println("YOUR CODE FOR PERFORM_LOOK_ACTION GOES HERE.") }.
 
 /**
@@ -189,7 +186,7 @@ patrollingRadius(64).
         +task_priority("TASK_GET_OBJECTIVE",1000);
         +task_priority("TASK_ATTACK", 1000);
         +task_priority("TASK_RUN_AWAY", 1500);
-        +task_priority("TASK_GOTO_POSITION", 750);
+        +task_priority("TASK_GOTO_POSITION", 5750);
         +task_priority("TASK_PATROLLING", 500);
         +task_priority("TASK_WALKING_PATH", 750).   
 
@@ -208,9 +205,7 @@ patrollingRadius(64).
  *
  */
 +!update_targets 
-	<-	
-    !tell_follower;
-    ?debug(Mode); if (Mode<=1) { .println("YOUR CODE FOR UPDATE_TARGETS GOES HERE.") }.
+	<-	?debug(Mode); if (Mode<=1) { .println("YOUR CODE FOR UPDATE_TARGETS GOES HERE.") }.
 	
 	
 /////////////////////////////////
@@ -314,12 +309,9 @@ patrollingRadius(64).
 
 
 
-
-+!tell_follower
-    <-  ?my_position(X, Y, Z);
-        .my_team("backup_AXIS", M);
-        .concat("follow_crazy(",X,",",Y,",",Z,")", Content);
-        .send_msg_with_conversation_id(M, tell, Content, "GOTO");
++follow_crazy(X, Y, Z)[source(M)]
+    <-  !add_task(task("TASK_GOTO_POSITION", M, pos(X, Y, Z), ""));
+        -follow_crazy(_)[source(M)]
         .
 
 
@@ -328,5 +320,6 @@ patrollingRadius(64).
 /////////////////////////////////
 
 +!init
-   <- ?debug(Mode); if (Mode<=1) { .println("YOUR CODE FOR init GOES HERE.")}.  
+   <- ?debug(Mode); if (Mode<=1) { .println("YOUR CODE FOR init GOES HERE.")}
+        .  
 
