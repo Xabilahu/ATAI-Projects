@@ -208,8 +208,7 @@ patrollingRadius(64).
  *
  */
 +!update_targets 
-	<-	
-    !tell_follower;
+	<-
     ?debug(Mode); if (Mode<=1) { .println("YOUR CODE FOR UPDATE_TARGETS GOES HERE.") }.
 	
 	
@@ -311,17 +310,6 @@ patrollingRadius(64).
 +cfa_refuse[source(M)]
    <- ?debug(Mode); if (Mode<=1) { .println("YOUR CODE FOR cfa_refuse GOES HERE.")};
       -cfa_refuse.  
-
-
-
-
-+!tell_follower
-    <-  ?my_position(X, Y, Z);
-        .my_team("backup_AXIS", M);
-        .concat("follow_crazy(",X,",",Y,",",Z,")", Content);
-        .send_msg_with_conversation_id(M, tell, Content, "GOTO");
-        .
-
 
 /////////////////////////////////
 //  Initialize variables

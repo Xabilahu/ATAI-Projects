@@ -11,9 +11,6 @@ type("CLASS_SOLDIER").
 // Value of "closeness" to the Flag, when patrolling in defense
 patrollingRadius(64).
 
-
-
-
 { include("jgomas.asl") }
 
 
@@ -186,7 +183,7 @@ patrollingRadius(64).
         +task_priority("TASK_GET_OBJECTIVE",1000);
         +task_priority("TASK_ATTACK", 1000);
         +task_priority("TASK_RUN_AWAY", 1500);
-        +task_priority("TASK_GOTO_POSITION", 5750);
+        +task_priority("TASK_GOTO_POSITION", 750);
         +task_priority("TASK_PATROLLING", 500);
         +task_priority("TASK_WALKING_PATH", 750).   
 
@@ -307,19 +304,37 @@ patrollingRadius(64).
    <- ?debug(Mode); if (Mode<=1) { .println("YOUR CODE FOR cfa_refuse GOES HERE.")};
       -cfa_refuse.  
 
-
-
 +follow_crazy(X, Y, Z)[source(M)]
-    <-  !add_task(task("TASK_GOTO_POSITION", M, pos(X, Y, Z), ""));
-        -follow_crazy(_)[source(M)]
-        .
+    <-  ?tasks(TaskList);
+        if (.member(task(_, "TASK_PATROLLING", _, _, _), TaskList)) {
+            .delete(task(_, TASK_PATROLLING, _, _, _), TaskList, NewTaskList);
+            -+tasks(NewTaskList);
+            .println("Removed TASK_PATROLLING.");
+        }
+
+        ?tasks(CurrentTaskList);
+        if (.member(task(_, "TASK_GOTO_POSITION", _, _, _), CurrentTaskList)){
+            .delete(task(_, "TASK_GOTO_POSITION", _, _, _), CurrentTaskList, NewList);
+            -+tasks(NewList);
+        }
+
+        ?tasks(CTaskList);
+        if (.member(task(_, "TASK_WALKING_PATH", _, _, _), CTaskList)) {
+            .delete(task(_, "TASK_WALKING_PATH", _, _, _), CTaskList, NList);
+            -+tasks(NList);
+        }
+
+        .my_name(MyName);
+        !add_task(task("TASK_GOTO_POSITION", MyName, pos(X, Y, Z), ""));
+        ?task_priority("TASK_GOTO_POSITION", TaskPrio);
+        -+current_task(task(TaskPrio, "TASK_GOTO_POSITION", MyName, pos(X, Y, Z), ""));
+        ?tasks(TList);
+        .println("Message Received! ", TList);
+        -follow_crazy(X, Y, Z).
 
 
 /////////////////////////////////
 //  Initialize variables
 /////////////////////////////////
 
-+!init
-   <- ?debug(Mode); if (Mode<=1) { .println("YOUR CODE FOR init GOES HERE.")}
-        .  
-
++!init .

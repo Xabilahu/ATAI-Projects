@@ -32,6 +32,14 @@ patrollingRadius(64).
        NewZ = Z * 20 + 200;
        !safe_pos(NewX, Y, NewZ).
 
++!broadcast_position
+    <-  ?my_position(X, Y, Z);
+        .concat("follow_crazy(", X, ", ", Y, ", ", Z, ")", MsgContent);
+        ?team(MyTeam);
+        .my_team(MyTeam, AgentList);
+        .send_msg_with_conversation_id(AgentList, tell, MsgContent, "FOLLOW");
+        .println("Broadcasted Position!").
+
 /////////////////////////////////
 //  GET AGENT TO AIM
 /////////////////////////////////
@@ -154,6 +162,7 @@ patrollingRadius(64).
  */
 +!perform_look_action 
     <-  ?tasks(TaskList);
+        !broadcast_position;
         ?current_task(task(_, TaskType, _, pos(TaskX, TaskY, TaskZ), _));
         if (TaskType == "TASK_GOTO_POSITION") { //Prevents bug of getting stuck in a wall recalculating its path
             ?prev_pos(X, Y, Z);
