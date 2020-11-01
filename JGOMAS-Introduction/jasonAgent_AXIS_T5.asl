@@ -12,8 +12,6 @@ type("CLASS_SOLDIER").
 patrollingRadius(64).
 
 
-
-
 { include("jgomas.asl") }
 
 
@@ -25,6 +23,35 @@ patrollingRadius(64).
 * Actions definitions
 *
 *******************************/
+
++!generate_next_position
+    <-  ?my_position(_, Y, _);
+        ?flag(FlagX, FlagY, FlagZ);
+        ?corner(Where);
+        if (Where == 0){ //up left
+            -+next_pos(FlagX-5, Y, FlagZ+5);
+            -+corner(1);
+        }
+        else {
+            if (Where == 1){ //up right
+                -+next_pos(FlagX+5, Y, FlagZ+5);
+                -+corner(2);
+            }
+            else{
+                if (Where == 2){ //down right
+                    -+next_pos(FlagX+5, Y, FlagZ-5);
+                    -+corner(3);
+                }
+                else{
+                    if (Where == 3){ //down left
+                        -+next_pos(FlagX-5, Y, FlagZ-5);
+                        -+corner(0);
+                    }
+                }
+            }
+        }
+       .
+
 
 /////////////////////////////////
 //  GET AGENT TO AIM
@@ -147,7 +174,26 @@ patrollingRadius(64).
  *
  */
 +!perform_look_action 
-        .
+    <-  ?tasks(TaskList);
+        ?current_task(task(_, TaskType, _, pos(TaskX, TaskY, TaskZ), _));
+        if (TaskType == "TASK_GOTO_POSITION") { //Prevents bug of getting stuck in a wall recalculating its path
+            ?prev_pos(X, Y, Z);
+            if (TaskX == X & TaskY == Y & TaskZ == Z) {
+                .delete(task(_, "TASK_GOTO_POSITION", _, pos(TaskX, TaskY, TaskZ), _), TaskList, NewTaskList);
+                -+tasks(NewTaskList);
+                !generate_next_position;
+                ?next_pos(NextX, NextY, NextZ);
+                -next_pos(NextX, NextY, NextZ);
+                .my_name(MyName);
+                !add_task(task("TASK_GOTO_POSITION", MyName, pos(NextX, NextY, NextZ), ""));
+                ?task_priority("TASK_GOTO_POSITION", Priority);
+                -+current_task(task(Priority, "TASK_GOTO_POSITION", MyName, pos(NextX, NextY, NextZ), ""));
+                .println("Added New Task! Going to Position: ", NextX, ", ", NextY, ", ", NextZ);
+            }
+        }
+        ?my_position(MyX, MyY, MyZ);
+        -+prev_pos(MyX, MyY, MyZ).
+
 /// <- ?debug(Mode); if (Mode<=1) { .println("YOUR CODE FOR PERFORM_LOOK_ACTION GOES HERE.") }.
 
 /**
@@ -206,8 +252,39 @@ patrollingRadius(64).
  *
  */
 +!update_targets 
-	<-
-    ?debug(Mode); if (Mode<=1) { .println("YOUR CODE FOR UPDATE_TARGETS GOES HERE.") }.
+    <-  ?tasks(TaskList);
+        if (.member(task(_, "TASK_PATROLLING", _, _, _), TaskList)) {
+            .delete(task(_, "TASK_PATROLLING", _, _, _), TaskList, NewTaskList);
+            -+tasks(NewTaskList);
+            .println("Removed TASK_PATROLLING from my tasks.");
+        }
+        
+        ?tasks(TaskListNew);
+        .length(TaskListNew, TaskLength);
+        if (TaskLength <= 0) {
+            !generate_next_position;
+            ?next_pos(NextX, NextY, NextZ);
+            -next_pos(NextX, NextY, NextZ);
+            .my_name(MyName);
+            !add_task(task("TASK_GOTO_POSITION", MyName, pos(NextX, NextY, NextZ), ""));
+            .println("Added New Task! Going to Position: ", NextX, ", ", NextY, ", ", NextZ);
+        } else { // This removes TASK_WALKING_PATH bug: infinite cycle of +1 Priority to TASK_WALKING_PATH
+            ?current_task(task(Priority, TaskType, _, _, _));
+
+            if (TaskType == "TASK_WALKING_PATH" & task_priority(TaskType, TaskPrio) & Priority > (TaskPrio + 1)) {
+                .delete(task(_, "TASK_WALKING_PATH", _, _, _), TaskListNew, UnBuggedTaskList1);
+                .delete(task(_, "TASK_GOTO_POSITION", _, _, _), UnBuggedTaskList1, UnBuggedTaskList2);
+                -+tasks(UnBuggedTaskList2);
+                !generate_next_position;
+                ?next_pos(NextX, NextY, NextZ);
+                -next_pos(NextX, NextY, NextZ);
+                .my_name(MyName);
+                !add_task(task("TASK_GOTO_POSITION", MyName, pos(NextX, NextY, NextZ), ""));
+                -+current_task(task("TASK_GOTO_POSITION", MyName, pos(NextX, NextY, NextZ)));
+                .println("Added New Task! Going to Position: ", NextX, ", ", NextY, ", ", NextZ);
+            }
+        }.
+
 	
 	
 /////////////////////////////////
@@ -309,10 +386,17 @@ patrollingRadius(64).
    <- ?debug(Mode); if (Mode<=1) { .println("YOUR CODE FOR cfa_refuse GOES HERE.")};
       -cfa_refuse.  
 
+
+
 /////////////////////////////////
 //  Initialize variables
 /////////////////////////////////
 
-+!init
-   <- ?debug(Mode); if (Mode<=1) { .println("YOUR CODE FOR init GOES HERE.")}.  
-
++!init 
+    <-  +corner(0);
+        ?objective(FlagX, FlagY, FlagZ);
+        +flag(FlagX, FlagY, FlagZ);
+        .my_name(MyName);
+        -+current_task(task(749, "DUMMY_TASK", MyName, pos(0, 0, 0), ""));
+        ?my_position(X, Y, Z);
+        +prev_pos(X, Y, Z).
