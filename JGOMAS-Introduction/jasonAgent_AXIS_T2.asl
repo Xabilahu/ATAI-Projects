@@ -38,6 +38,11 @@ patrollingRadius(64).
         ?team(MyTeam);
         .my_team(MyTeam, AgentList);
         .send_msg_with_conversation_id(AgentList, tell, MsgContent, "FOLLOW");
+
+        if (allied_name(Name)) {
+            .send_msg_with_conversation_id(Name, tell, MsgContent, "FOLLOW");
+        }
+
         .println("Broadcasted Position!").
 
 /////////////////////////////////
@@ -175,11 +180,52 @@ patrollingRadius(64).
                 .my_name(MyName);
                 !add_task(task("TASK_GOTO_POSITION", MyName, pos(SafeX, SafeY, SafeZ), ""));
                 ?task_priority("TASK_GOTO_POSITION", Priority);
-                -+current_task(task(Priority, "TASK_GOTO_POSITION", MyName, pos(SafeX, SafeY, SafeZ), ""));
+                //-+current_task(task(Priority, "TASK_GOTO_POSITION", MyName, pos(SafeX, SafeY, SafeZ), ""));
+                -+state(standing);
                 .println("Added New Task! Going to Position: ", SafeX, ", ", SafeY, ", ", SafeZ);
             }
         }
+
+        ?prev_pos(X, Y, Z);
         ?my_position(MyX, MyY, MyZ);
+
+        if (X == MyX & Y == MyY & Z == MyZ) { // UNSOLVABLE BUG!!!!!
+            ?bug_identifier(BugCount);
+            UpdatedCount = BugCount + 1;
+            -+bug_identifier(UpdatedCount);
+            .println("Bug Count: ", UpdatedCount);
+
+            if (UpdatedCount == 2) {
+
+                ?tasks(CurrentTaskList);
+                if (.member(task(_, "TASK_GOTO_POSITION", _, _, _), CurrentTaskList)){
+                    .delete(task(_, "TASK_GOTO_POSITION", _, _, _), CurrentTaskList, NewList);
+                    -+tasks(NewList);
+                    .println("Updated Task List: ", NewList);
+                }
+
+                ?tasks(CTaskList);
+                if (.member(task(_, "TASK_WALKING_PATH", _, _, _), CTaskList)) {
+                    .delete(task(_, "TASK_WALKING_PATH", _, _, _), CTaskList, NList);
+                    -+tasks(NList);
+                    .println("Unbugged Task List: ", NList);
+                }
+
+                !generate_safe_position;
+                ?safe_pos(SafeX, SafeY, SafeZ);
+                -safe_pos(SafeX, SafeY, SafeZ);
+                .my_name(MyName);
+                !add_task(task("TASK_GOTO_POSITION", MyName, pos(SafeX, SafeY, SafeZ), ""));
+                ?task_priority("TASK_GOTO_POSITION", Priority);
+                //-+current_task(task(Priority, "TASK_GOTO_POSITION", MyName, pos(SafeX, SafeY, SafeZ), ""));
+                -+state(standing);
+                .println("Bug Detected! Added New Task! Going to Position: ", SafeX, ", ", SafeY, ", ", SafeZ);
+                -+bug_identifier(0); 
+            }
+        } else {
+            -+bug_identifier(0);
+        }
+ 
         -+prev_pos(MyX, MyY, MyZ).
 
 /// <- ?debug(Mode); if (Mode<=1) { .println("YOUR CODE FOR PERFORM_LOOK_ACTION GOES HERE.") }.
@@ -215,15 +261,15 @@ patrollingRadius(64).
 /**  You can change initial priorities if you want to change the behaviour of each agent  **/
 +!setup_priorities
     <-  +task_priority("TASK_NONE",0);
-        +task_priority("TASK_GIVE_MEDICPAKS", 2000);
+        +task_priority("TASK_GIVE_MEDICPAKS", 200);
         +task_priority("TASK_GIVE_AMMOPAKS", 0);
         +task_priority("TASK_GIVE_BACKUP", 0);
         +task_priority("TASK_GET_OBJECTIVE",1000);
         +task_priority("TASK_ATTACK", 1000);
         +task_priority("TASK_RUN_AWAY", 1500);
-        +task_priority("TASK_GOTO_POSITION", 750);
+        +task_priority("TASK_GOTO_POSITION", 1750);
         +task_priority("TASK_PATROLLING", 500);
-        +task_priority("TASK_WALKING_PATH", 750).   
+        +task_priority("TASK_WALKING_PATH", 1750).   
 
 
 
@@ -255,7 +301,11 @@ patrollingRadius(64).
             -safe_pos(SafeX, SafeY, SafeZ);
             .my_name(MyName);
             !add_task(task("TASK_GOTO_POSITION", MyName, pos(SafeX, SafeY, SafeZ), ""));
+            ?task_priority("TASK_GOTO_POSITION", GotoPriority);
+            //-+current_task(task(GotoPriority, "TASK_GOTO_POSITION", MyName, pos(SafeX, SafeY, SafeZ), ""));
+            -+state(standing);
             .println("Added New Task! Going to Position: ", SafeX, ", ", SafeY, ", ", SafeZ);
+            .println("update_targets tasks <= 0");
         } else { // This removes TASK_WALKING_PATH bug: infinite cycle of +1 Priority to TASK_WALKING_PATH
             ?current_task(task(Priority, TaskType, _, _, _));
 
@@ -268,8 +318,11 @@ patrollingRadius(64).
                 -safe_pos(SafeX, SafeY, SafeZ);
                 .my_name(MyName);
                 !add_task(task("TASK_GOTO_POSITION", MyName, pos(SafeX, SafeY, SafeZ), ""));
-                -+current_task(task("TASK_GOTO_POSITION", MyName, pos(SafeX, SafeY, SafeZ)));
+                ?task_priority("TASK_GOTO_POSITION", GotoPriority);
+                //-+current_task(task(GotoPriority, "TASK_GOTO_POSITION", MyName, pos(SafeX, SafeY, SafeZ), ""));
+                -+state(standing);
                 .println("Added New Task! Going to Position: ", SafeX, ", ", SafeY, ", ", SafeZ);
+                .println("update_targets bug");
             }
         }.
 
@@ -286,8 +339,8 @@ patrollingRadius(64).
  * <em> It's very useful to overload this plan. </em>
  *
  */
-+!checkMedicAction
-<-  -+medicAction(on).
+//+!checkMedicAction
+//<-  -+medicAction(on).
 // go to help
 
 
@@ -302,8 +355,8 @@ patrollingRadius(64).
  * <em> It's very useful to overload this plan. </em>
  *
  */
-+!checkAmmoAction
-<-  -+fieldopsAction(on).
+//+!checkAmmoAction
+//<-  -+fieldopsAction(on).
 //  go to help
 
 
@@ -351,30 +404,10 @@ patrollingRadius(64).
 
        }
        .
-       
-/////////////////////////////////
-//  ANSWER_ACTION_CFM_OR_CFA
-/////////////////////////////////
 
-   
-    
-+cfm_agree[source(M)]
-   <- ?debug(Mode); if (Mode<=1) { .println("YOUR CODE FOR cfm_agree GOES HERE.")};
-      -cfm_agree.  
-
-+cfa_agree[source(M)]
-   <- ?debug(Mode); if (Mode<=1) { .println("YOUR CODE FOR cfa_agree GOES HERE.")};
-      -cfa_agree.  
-
-+cfm_refuse[source(M)]
-   <- ?debug(Mode); if (Mode<=1) { .println("YOUR CODE FOR cfm_refuse GOES HERE.")};
-      -cfm_refuse.  
-
-+cfa_refuse[source(M)]
-   <- ?debug(Mode); if (Mode<=1) { .println("YOUR CODE FOR cfa_refuse GOES HERE.")};
-      -cfa_refuse.  
-
-
++register_allied(Name)[source(M)]
+    <-  +allied_name(Name);
+        -register_allied(Name).
 
 /////////////////////////////////
 //  Initialize variables
@@ -384,4 +417,5 @@ patrollingRadius(64).
     <-  .my_name(MyName);
         -+current_task(task(749, "DUMMY_TASK", MyName, pos(0, 0, 0), ""));
         ?my_position(X, Y, Z);
-        +prev_pos(X, Y, Z).
+        +prev_pos(X, Y, Z);
+        +bug_identifier(0).
