@@ -52,7 +52,7 @@ if (Length > 0) {
     
     -+aimed("false");
     
-    while (aimed("false") & bucle(X) & (X < Length)) {
+    while (not no_shoot("true") & bucle(X) & (X < Length)) {
         
         //.println("En el bucle, y X vale:", X);
         
@@ -76,12 +76,26 @@ if (Length > 0) {
                 +aimed_agent(Object);
                 -+aimed("true");
                 
+            }  else {
+                if (Team == 100) {
+                    .nth(3, Object, Angle);
+                    if (math.abs(Angle) < 0.1) {
+                        +no_shoot("true");
+                        .println("ALLIES in front, not aiming!");
+                    } 
+                }
             }
             
         }
         
         -+bucle(X+1);
         
+    }
+
+    if (no_shoot("true")) {
+        -aimed_agent(_);
+        -+aimed("false");
+        -no_shoot("true");
     }
     
     

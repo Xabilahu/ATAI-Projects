@@ -38,11 +38,6 @@ patrollingRadius(64).
         ?team(MyTeam);
         .my_team(MyTeam, AgentList);
         .send_msg_with_conversation_id(AgentList, tell, MsgContent, "FOLLOW");
-
-        if (allied_name(Name)) {
-            .send_msg_with_conversation_id(Name, tell, MsgContent, "FOLLOW");
-        }
-
         .println("Broadcasted Position!").
 
 /////////////////////////////////
@@ -404,10 +399,6 @@ patrollingRadius(64).
 
        }
        .
-
-+register_allied(Name)[source(M)]
-    <-  +allied_name(Name);
-        -register_allied(Name).
 
 /////////////////////////////////
 //  Initialize variables
