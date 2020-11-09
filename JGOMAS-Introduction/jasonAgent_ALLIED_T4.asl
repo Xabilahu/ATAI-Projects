@@ -18,6 +18,13 @@ type("CLASS_SOLDIER").
 * Actions definitions
 *
 *******************************/
++!generate_safe_position
+    <- ?my_position(_, Y, _);
+       .random(X);
+       .random(Z);
+       NewX = X * 20 + 200;
+       NewZ = Z * 20 + 200;
+       !safe_pos(NewX, Y, NewZ).
 
 /////////////////////////////////
 //  GET AGENT TO AIM 
@@ -207,17 +214,22 @@ if (Length > 0) {
         if (MinimumDist < 999999999) {
             ?min_pos(MinX, MinY, MinZ);
             !add_task(task("TASK_GOTO_POSITION", MyName, pos(MinX, MinY, MinZ), ""));
-            ?task_priority("TASK_GOTO_POSITION", Priority);
-            //-+current_task(task(Priority, "TASK_GOTO_POSITION", MyName, pos(MinX, MinY, MinZ), ""));
             -+state(standing);
             .println("Going to Position: ", MinX, ", ", MinY, ", ", MinZ);
         } else {
-            ?flag(FlagX, FlagY, FlagZ);
-            !add_task(task("TASK_GOTO_POSITION", MyName, pos(FlagX, FlagY, FlagZ), ""));
-            ?task_priority("TASK_GOTO_POSITION", Priority);
-            //-+current_task(task(Priority, "TASK_GOTO_POSITION", MyName, pos(FlagX, FlagY, FlagZ), ""));
-            -+state(standing);
-            .println("Going to Flag Position!");
+            if (wander(WStatus) & WStatus == "True") {
+                !generate_safe_position;
+                ?safe_pos(SafeX, SafeY, SafeZ);
+                -safe_pos(SafeX, SafeY, SafeZ);
+                !add_task(task("TASK_GOTO_POSITION", MyName, pos(SafeX, SafeY, SafeZ), ""));
+                -+state(standing);
+                .println("Wandering! Go to position: ", SafeX, SafeY, SafeZ);
+            } else {
+                ?flag(FlagX, FlagY, FlagZ);
+                !add_task(task("TASK_GOTO_POSITION", MyName, pos(FlagX, FlagY, FlagZ), ""));
+                -+state(standing);
+                .println("Going to Flag Position!");
+            }
         }
         -min_pos(_, _, _);
         ?tasks(TList);
@@ -282,7 +294,15 @@ if (Length > 0) {
  */
 
 +!update_targets
-	<-	?debug(Mode); if (Mode<=1) { .println("YOUR CODE FOR UPDATE_TARGETS GOES HERE.") }.
+	<-	if (wander(WStatus) & WStatus == "False") {
+            ?flag(FlagX, FlagY, FlagZ);
+            ?my_position(MyX, MyY, MyZ);
+            !distance(pos(FlagX, FlagY, FlagZ), pos(MyX, MyY, MyZ));
+            ?distance(D);
+            if (D < 10) {
+                -+wander("True");
+            }
+        }.
 	
 	
 	
@@ -369,7 +389,5 @@ if (Length > 0) {
 
 +!init
    <- ?objective(FlagX, FlagY, FlagZ);
-      +flag(FlagX, FlagY, FlagZ).
-
-
-
+      +flag(FlagX, FlagY, FlagZ);
+      +wander("False").
