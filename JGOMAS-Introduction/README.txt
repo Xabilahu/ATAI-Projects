@@ -66,6 +66,12 @@ soldiers it sees. When it finishes computing all the distances, it goes to the a
 minimun distance between them. That will be achieved by adding a TASK_GOTO_POSITION task with the position 
 where they are. It will try to kill the crazy one as it gets closer to them.
 
+Before the agent gets to the flag's position, we made this calculating the distance, and it gets to a distance of 
+10 units to the flag, he starts moving randomly in order to locate the crazy agent.
+
+We got a bug that we could not solve, that is when this agent crosses with the crazy. When this happens, our agent
+stops its execution.
+
 ## TASK 5: PATROLLER Agent (AXIS) [jasonAgent_AXIS_T5.asl]
 
 For this extra task we implemented an agent that patrols the flag by going in squares around the flag.
@@ -74,3 +80,7 @@ and then, depending on which is the following corner, we make the agent go there
 
 Very simple task, but could not implement any more complex because of the time we already consumed in 
 order to get the first 4 task "kind of" working.
+
+Also, we implemented that ALLIED agents don't shoot each other when they are lined up. In order to do this, 
+we look in its FOVObjects list for ALLIED agents that are in an angle less than 0.1 rad, when this happens
+the agent does not aim.
